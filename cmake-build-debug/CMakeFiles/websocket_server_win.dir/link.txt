@@ -1,1 +1,0 @@
-/usr/bin/c++  -g   CMakeFiles/websocket_server_win.dir/main.cpp.o  -o websocket_server_win 

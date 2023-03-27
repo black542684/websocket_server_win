@@ -1,3 +1,0 @@
-/mnt/d/myproject/cpp_project/websocket_server_win/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/mnt/d/myproject/cpp_project/websocket_server_win/cmake-build-debug/CMakeFiles/edit_cache.dir
-/mnt/d/myproject/cpp_project/websocket_server_win/cmake-build-debug/CMakeFiles/websocket_server_win.dir
