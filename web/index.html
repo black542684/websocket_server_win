@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    body {
+      margin: 0px;
+      display: flex;
+    }
+    .message-list {
+      width: 600px;
+      height: 400px;
+      border: 1px solid #ccc;
+      overflow: auto;
+      padding: 12px;
+    }
+    .send-box {
+      padding-top: 300px;
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="message-list"></div>
+  <div class="send-box">
+    <input type="text" id="input" placeholder="请输入一条消息">
+    <button disabled id="send">发送</button>
+    <button id="link">连接服务器</button>
+  </div>
+  <script>
+    function pushMessage(el, message) {
+      let str = el.innerHTML;
+      str += `${message} <br/>`;
+      el.innerHTML = str;
+    }
+    const send = document.querySelector("#send");
+    const input = document.querySelector("#input");
+    const link = document.querySelector("#link");
+    const msgbox = document.querySelector(".message-list");
+
+    let socket = null;
+
+
+
+
+    link.addEventListener("click", () => {
+      if (socket !== null) return;
+
+      socket = new WebSocket("ws://localhost:8081");
+      socket.addEventListener('open', () => {
+        pushMessage(msgbox, "ws onopen");
+        send.removeAttribute("disabled")
+      });
+      socket.addEventListener('message', (e) => {
+        console.log('ws onmessage');
+        console.log('from server: ' + e.data);
+      });
+    });
+
+    send.addEventListener('click', () => {
+      console.log(input.value);
+      if (input.value) {
+        pushMessage(msgbox, "客户端：" + input.value);
+        socket.send(input.value);
+        input.value = "";
+      }
+    });
+  </script>
+</body>
+</html>
