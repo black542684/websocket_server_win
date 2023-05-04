@@ -13,14 +13,36 @@ using namespace std;
 
 unsigned WINAPI accept_request(void* arg) {
     auto client = (SOCKET)arg; // 客户端套接字
-    std::string request_line; // 请求行
-    std::string buff; // 缓冲区
-    char* outer_ptr = nullptr;
+
+    shakeHands(client);
+    printf("握手结束，开始正式通讯！\n");
+
+    while (true) {
+        handleMessage(client);
+    }
+
+    std::cout << "结束" << std::endl;
+    return 0;
+}
+
+void shakeHands(SOCKET client) {
 
     std::map<std::string, std::string> request_head;  // 请求头
+    string buff; // 缓冲区
+    char* outer_ptr = nullptr;
 
-    // 获取请求行
-    get_line(client, request_line);
+    string method; // 请求方法
+    string path; // 请求路径
+    string version; // 协议版本
+    formatRequestLine(client, method, path, version);
+
+    // 方法必须是GET
+    if (method != "GET") {
+        sendError(client);
+        return;
+    }
+
+
     // 循环获取所有的请求头数据
     while (true) {
         get_line(client, buff);
@@ -33,7 +55,7 @@ unsigned WINAPI accept_request(void* arg) {
                 (char *)buff.c_str(),
                 ":",
                 &outer_ptr
-                );
+        );
         std::string key(tmp);
         tmp = strtok_s(nullptr, ":", &outer_ptr);
         std::string value(tmp);
@@ -49,29 +71,21 @@ unsigned WINAPI accept_request(void* arg) {
         buff.clear();
     }
 
-    /**
-     * 获取客户端发送的Sec-WebSocket-Key的值，
-     * 然后用SHA1编码，再用base64编码一次
-     */
 
     // std::cout << "Sec-WebSocket-Key: "<< request_head["Sec-WebSocket-Key"] << std::endl;
 
-    char hex[SHA1_HEX_SIZE];
-    char base64[SHA1_BASE64_SIZE];
-
     // 把客户发送的 Sec-WebSocket-Key 和 "258EAFA5-E914-47DA-95CA-C5AB0DC85B11" 连接起来
     // 把结果用SHA-1编码，再用base64编码一次，就可以了
+    char base64[SHA1_BASE64_SIZE];
     std::string websocket_key = request_head["Sec-WebSocket-Key"];
     std::string magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     websocket_key += magic;
 
     sha1(websocket_key.c_str())
-    .finalize()
-    .print_hex(hex)
-    .print_base64(base64);
+            .finalize()
+            .print_base64(base64);
 
     // std::cout << "Sec-WebSocket-Accept: "<< base64 << std::endl;
-
     // 当服务器收到握手请求时，它应该发回一个特殊的响应，表明协议将从 HTTP 变为 WebSocket
     buff = "HTTP/1.1 101 Switching Protocols\r\n";
     send(client, buff.c_str(), buff.length(), 0);
@@ -87,24 +101,16 @@ unsigned WINAPI accept_request(void* arg) {
 
     buff = "\r\n";
     send(client, buff.c_str(), buff.length(), 0);
-
-    printf("握手结束，开始正式通讯！\n");
-
-    while (true) {
-        handleMessage(client);
-    }
-
-
-    std::cout << "结束" << std::endl;
-    return 0;
 }
-
 
 void handleMessage(SOCKET client) {
     // printf("开始接收消息...\n");
     char c = '\0'; // 保存读取到的一个字符
 
     recv(client, &c, 1, 0); // 读取第一个字节
+
+    unsigned char FIN = c >> 7;
+
     // 消息类型
     char opcode = c & (char)0x0F;
     parintMessageType(opcode);
@@ -247,4 +253,11 @@ void encodeMessageBody(const char* mask, long long len, SOCKET client) {
     }
 
     cout << "客户端: " << decoded << endl;
+}
+
+void sendError(SOCKET client) {
+    string buff = "HTTP/1.1 400 Bad Request\r\n";
+    send(client, buff.c_str(), buff.length(), 0);
+    buff = "\r\n";
+    send(client, buff.c_str(), buff.length(), 0);
 }

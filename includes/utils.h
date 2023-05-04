@@ -15,4 +15,13 @@ int get_line(SOCKET sock, std::string& buff);
  * @param s
  */
 void delete_space(std::string& s);
+
+/**
+ * 解析请求行
+ * @param client  客户端
+ * @param method  请求方法
+ * @param path    请求路径
+ * @param version 协议版本
+ */
+void formatRequestLine(SOCKET client, std::string& method, std::string& path, std::string& version);
 #endif //WEBSOCKET_SERVER_WIN_UTILS_H

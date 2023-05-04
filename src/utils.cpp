@@ -46,3 +46,24 @@ void delete_space(std::string& s)
     s.erase(0, s.find_first_not_of(" "));
     s.erase(s.find_last_not_of(" ") + 1);
 }
+
+void formatRequestLine(SOCKET client, std::string& method, std::string& path, std::string& version) {
+    std::string request_line; // 请求行
+    char* outer_ptr = nullptr;
+
+    get_line(client, request_line); // 获取请求行
+
+    // 以‘ ’分割请求行
+    char* tmp = strtok_s(
+            (char *)request_line.c_str(),
+            " ",
+            &outer_ptr
+    );
+    method = tmp;
+
+    tmp = strtok_s(nullptr, " ", &outer_ptr);
+    path = tmp;
+
+    tmp = strtok_s(nullptr, " ", &outer_ptr);
+    version = tmp;
+}

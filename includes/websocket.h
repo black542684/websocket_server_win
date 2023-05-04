@@ -10,6 +10,9 @@
 // 处理客户端请求的线程函数
 unsigned WINAPI accept_request(void* arg);
 
+// 处理和客户端握手
+void shakeHands(SOCKET client);
+
 // 和客户端完成握手之后，接收和处理客户端的消息
 void handleMessage(SOCKET client);
 
@@ -24,5 +27,8 @@ void getMask(char* mask, SOCKET client);
 
 // 获取消息体长度并且解码
 void encodeMessageBody(const char* mask, long long len, SOCKET client);
+
+// 和客户端握手失败
+void sendError(SOCKET client);
 
 #endif //WEBSOCKET_SERVER_WIN_WEBSOCKET_H
